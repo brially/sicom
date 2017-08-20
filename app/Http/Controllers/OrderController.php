@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Item;
 use App\Models\Order;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -61,7 +62,8 @@ class OrderController extends Controller
      */
     public function edit(Order $order)
     {
-        return view('order.edit', compact(['order']));
+        $items = Item::all();
+        return view('order.edit', compact(['order', 'items']));
     }
 
     /**

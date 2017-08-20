@@ -35,7 +35,19 @@ class OrderItemController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $rules = [
+            'order_id'=>'required|exists:orders,id',
+            'item_id'=>'required|exists:items,id',
+            'quantity'=>'required|numeric|min:1'
+        ];
+
+        $this->validate($request, $rules);
+
+        $order_item = OrderItem::create($request->only(['order_id','item_id', 'quantity']));
+
+        $order_item->load('item');
+
+        return response($order_item, 200);
     }
 
     /**
@@ -80,6 +92,11 @@ class OrderItemController extends Controller
      */
     public function destroy(OrderItem $orderItem)
     {
-        //
+        if($orderItem->delete()){
+            return response(['success'=>true, 'text'=>'Order item deleted'], 200);
+        }
+        else {
+            return response(['success'=>false, 'text'=>'Order item not deleted'], 400);
+        }
     }
 }
