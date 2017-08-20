@@ -37,7 +37,7 @@
 
                                         <div class="col-md-8">
                                             <textarea id="comments" type="text" class="form-control"
-                                                      name="comments" required>{{ $order->comments }}</textarea>
+                                                      name="comments" >{{ $order->comments }}</textarea>
                                             @if ($errors->has('comments'))
                                                 <span class="help-block">
                                                     <strong>{{ $errors->first('comments') }}</strong>
@@ -62,14 +62,39 @@
                                             @forelse($order->order_items as $order_item)
                                                 <tr id="tr_order_item_{{ $order_item->id  }}">
                                                     <td>{{ $order_item->item->name }}</td>
-                                                    <td>{{ $order_item->quantity }}</td>
-                                                    <td>
-                                                        <button class="btn btn-default btn-xs btn-delete-order-item"
-                                                                data-order-item-id="{{ $order_item->id }}"
-                                                                date-csrf-token="{{ csrf_token() }}"
-                                                        >
-                                                            <span class="text-danger">Delete</span>
-                                                        </button>
+                                                    <td class="col-sm-3">
+                                                        <form id="frm_order_item_edit_{{ $order_item->id  }}" class="form-horizontal" >
+                                                            {{ csrf_field() }}
+                                                            <div id="quantity_frm_grp_{{ $order_item->id  }}" class="form-group form-group-sm">
+                                                                <div class="col-sm-12">
+                                                                    <div class="input-group input-group-sm">
+                                                                        <input id="quantity_{{ $order_item->id  }}" type="number" class="form-control"
+                                                                               name="quantity" value="{{ $order_item->quantity  }}"
+                                                                               required min="1"
+                                                                        >
+                                                                        <span class="input-group-btn">
+                                                                            <button class="btn btn-sm btn-default btn-order-item-update"
+                                                                                    data-order-item-id="{{ $order_item->id }}"
+                                                                                    date-csrf-token="{{ csrf_token() }}"
+                                                                                    type="button">
+                                                                                <span class="text-success">Update</span>
+                                                                            </button>
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+
+                                                            </div>
+                                                        </form>
+                                                    </td>
+                                                    <td class="col-sm-2">
+                                                        <div class="btn-group btn-group-sm" role="group" aria-label="">
+                                                            <button class="btn btn-default btn-sm btn-delete-order-item"
+                                                                    data-order-item-id="{{ $order_item->id }}"
+                                                                    date-csrf-token="{{ csrf_token() }}"
+                                                            >
+                                                                <span class="text-danger">Delete</span>
+                                                            </button>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             @empty
@@ -158,6 +183,41 @@
 @push('scripts')
 
 <script type="text/javascript">
+    function updateOrderItem(){
+        $('tr' ).removeClass('success');
+        $('.has-error').removeClass('has-error');
+        let order_item_id = $(this).attr('data-order-item-id');
+        let order_item_form = $('#frm_order_item_edit_' + order_item_id);
+
+        if(order_item_form[0].checkValidity() ){
+            let url = '{{ action('OrderItemController@index') }}/' + order_item_id;
+            let token = $(this).attr('date-csrf-token');
+            $.ajax({
+                        url: url,
+                        data: {
+                            '_method': 'put',
+                            '_token':token,
+                            'quantity':$('#quantity_' + order_item_id).val(),
+                        },
+                        type: "POST",
+                        dataType : "json",
+                    })
+                    .done(function( json ) {
+                        $('#tr_order_item_' + order_item_id ).addClass('success');
+                    })
+                    .fail(function( xhr, status, errorThrown ) {
+                        alert( "Error, item cannot be updated!" );
+                        console.log( "Error: " + errorThrown );
+                        console.log( "Status: " + status );
+                        console.dir( xhr );
+                        console.log(xhr.responseText);
+                    });
+        }
+        else {
+            $('#quantity_frm_grp_' + order_item_id).addClass('has-error');
+        }
+    }
+
     function deleteOrderItem(){
         let order_item_id = $(this).attr('data-order-item-id');
         let url = '{{ action('OrderItemController@index') }}/' + order_item_id;
@@ -200,10 +260,56 @@
                             'text': order_item.item.name
                         }).appendTo(row);
 
-                        $('<td />', {
-                            'text': order_item.quantity,
-                        }).appendTo(row);
+                        let td_quantity = $('<td />', {}).appendTo(row);
 
+                        let frm_quantity = $('<form />', {
+                            'id': 'frm_order_item_edit_' + order_item.id,
+                            'class':'form-horizontal'
+                        }).appendTo(td_quantity);
+
+                        $('<input />', {
+                            'name': '_token',
+                            'type':'hidden',
+                            'value':'{{ csrf_token() }}'
+                        }).appendTo(frm_quantity);
+
+                        let frm_grp_quantity = $('<div />', {
+                            'id': 'quantity_frm_grp_' + order_item.id,
+                            'class':'form-group form-group-sm'
+                        }).appendTo(frm_quantity);
+
+                        let div_quantity_layout = $('<div />', {
+                            'class':'col-sm-12'
+                        }).appendTo(frm_grp_quantity);
+
+                        let input_grp_quantity = $('<div />', {
+                            'class':'input-group input-group-sm'
+                        }).appendTo(div_quantity_layout);
+
+                        $('<input />', {
+                            'id': 'quantity_' + order_item.id,
+                             'type':'number',
+                            'class':'form-control',
+                            'name':'quantity',
+                            'value':order_item.quantity,
+                            'required':true, 'min':'1'
+                        }).appendTo(input_grp_quantity);
+
+                        let input_btn_grp_quantity = $('<span />', {
+                            'class':'input-group-btn'
+                        }).appendTo(input_grp_quantity);
+
+                        let btn_quantity_update = $('<button />', {
+                            'class':'btn btn-sm btn-default btn-order-item-update',
+                            'data-order-item-id':order_item.id,
+                            'date-csrf-token':'{{ csrf_token() }}',
+                            'type':'button'
+                        }).appendTo(input_btn_grp_quantity).on('click', updateOrderItem);
+
+                        $('<span />', {
+                            'class':'text-success',
+                            'text':'Update'
+                        }).appendTo(btn_quantity_update);
 
                         let td_delete = $('<td />', {}).appendTo(row);
 
@@ -218,7 +324,6 @@
                             'class':'text-danger',
                             'text':'Delete'
                         }).appendTo(button_delete);
-
                     })
                     .fail(function(xhr, status, errorThrown) {
                         alert( "Error, item cannot be added!" );
@@ -268,11 +373,6 @@
                 console.log('date invalid');
                 $('#date_frm_grp').addClass('has-error');
             }
-            let fld_comments = $('#comments');
-            if(!fld_comments[0].checkValidity()){
-                console.log('comments invalid');
-                $('#comments_frm_grp').addClass('has-error');
-            }
         }
     }
 
@@ -281,9 +381,12 @@
 
         $('#btn_save_order_item').on('click', saveOrderItem);
 
+        $('.btn-order-item-update').on('click', updateOrderItem);
+
         $('.btn-delete-order-item').on('click', deleteOrderItem);
 
     });
+
 </script>
 
 @endpush

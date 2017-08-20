@@ -81,7 +81,20 @@ class OrderItemController extends Controller
      */
     public function update(Request $request, OrderItem $orderItem)
     {
-        //
+        $rules = [
+            'quantity'=>'required|numeric|min:1'
+        ];
+
+        $this->validate($request, $rules);
+
+        $orderItem->update($request->only(['quantity']));
+
+        $orderItem->save();
+
+        $orderItem->load('item');
+
+
+        return response($orderItem, 200);
     }
 
     /**

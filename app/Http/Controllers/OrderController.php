@@ -77,8 +77,7 @@ class OrderController extends Controller
     {
         $rules = [
             'user_id'=>'required|exists:users,id',
-            'date'=>'required|date|after_or_equal:today',
-            'comments'=>'required'
+            'date'=>'required|date|after_or_equal:today'
         ];
 
         $this->validate($request, $rules);
