@@ -15,6 +15,9 @@ class Order extends Model
         'date', 'comments', 'user_id',
     ];
 
+    protected $dates = ['date'];
+
+
     /**
      * returns the App\Models\User that created the order
      *

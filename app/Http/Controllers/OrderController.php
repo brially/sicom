@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Input;
 
 class OrderController extends Controller
 {
@@ -24,7 +26,9 @@ class OrderController extends Controller
      */
     public function create()
     {
-        //
+        
+        
+        return view('order.create');
     }
 
     /**
@@ -57,7 +61,7 @@ class OrderController extends Controller
      */
     public function edit(Order $order)
     {
-        //
+        return view('order.edit', compact(['order']));
     }
 
     /**
@@ -69,7 +73,22 @@ class OrderController extends Controller
      */
     public function update(Request $request, Order $order)
     {
-        //
+        $rules = [
+            'user_id'=>'required|exists:users,id',
+            'date'=>'required|date|after_or_equal:today',
+            'comments'=>'required'
+        ];
+
+        $this->validate($request, $rules);
+
+        $order->update([
+            'date'=>Carbon::parse(Input::get('date')),
+            'comments'=>Input::get('comments'),
+            'user_id'=>Input::get('user_id')
+        ]);
+        $order->save();
+
+        return response($order, 200);
     }
 
     /**
