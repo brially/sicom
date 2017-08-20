@@ -30,7 +30,7 @@ class OrderController extends Controller
     {
         $user = Auth::user();
 
-        $order = $user->orders()->first();
+        $order = $user->orders->first();
         if(!$order){
             $order = Order::create([
                     'user_id'=>$user->id,
