@@ -6,6 +6,7 @@ use App\Models\Item;
 use App\Models\Order;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 
 class OrderController extends Controller
@@ -27,9 +28,19 @@ class OrderController extends Controller
      */
     public function create()
     {
-        
-        
-        return view('order.create');
+        $user = Auth::user();
+
+        $order = $user->orders()->first();
+        if(!$order){
+            $order = Order::create([
+                    'user_id'=>$user->id,
+                    'date'=>Carbon::now()
+            ]);
+        }
+
+        return redirect(action('OrderController@edit', $order));
+
+
     }
 
     /**
