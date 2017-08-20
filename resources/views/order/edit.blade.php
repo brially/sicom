@@ -61,7 +61,7 @@
                                             <tbody id="order_items_table_body">
                                             @forelse($order->order_items as $order_item)
                                                 <tr id="tr_order_item_{{ $order_item->id  }}">
-                                                    <td>{{ $order_item->item->name }}</td>
+                                                    <td class="ordered_item_id_{{ $order_item->item->id }}">{{ $order_item->item->name }}</td>
                                                     <td class="col-sm-3">
                                                         <form id="frm_order_item_edit_{{ $order_item->id  }}" class="form-horizontal" >
                                                             {{ csrf_field() }}
@@ -247,7 +247,12 @@
     function saveOrderItem(){
         $('.has-error').removeClass('has-error');
         let order_item_form = $('#order_item_form');
-        if(order_item_form[0].checkValidity() ){
+        let item_id = $('#item_id').val();
+        console.log($('.ordered_item_id_'+ item_id)[0])
+        if($('.ordered_item_id_'+ item_id)[0]){
+            alert('The item has already been added to the order\nPlease adjust the quantity of the existing entry');
+        }
+        else if(order_item_form[0].checkValidity() ){
             $.post( "{{ action('OrderItemController@store', [$order]) }}", order_item_form.serialize(), function (){}, 'json')
                     .done(function(order_item) {
                         console.log(order_item);
@@ -257,7 +262,8 @@
                         }).appendTo("#order_items_table_body");
 
                         $('<td />', {
-                            'text': order_item.item.name
+                            'text': order_item.item.name,
+                            'class':'ordered_item_id_' + order_item.item.id
                         }).appendTo(row);
 
                         let td_quantity = $('<td />', {}).appendTo(row);
