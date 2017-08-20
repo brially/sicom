@@ -359,7 +359,10 @@
     function saveOrder(){
         $('.has-error').removeClass('has-error');
         let order_form = $('#order_form');
-        if(order_form[0].checkValidity() ){
+        if(!$('tr' )[0]){
+            alert( "Add an item before saving!" );
+        }
+        else if(order_form[0].checkValidity() ){
             $.post( "{{ action('OrderController@update', [$order]) }}", order_form.serialize(), function (){}, 'json')
                     .done(function() {
                         alert('Order Saved')
