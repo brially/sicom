@@ -17,7 +17,7 @@
                                     {{ csrf_field() }}
                                     <div id="date_frm_grp" class="form-group{{ $errors->has('date') ? ' has-error' : '' }}">
                                         <label for="date" class="col-md-2 control-label">Order Date</label>
-                                        <div class="col-md-8">
+                                        <div class="col-md-10">
                                             <input id="date" type="date" class="form-control"
                                                    data-provide="datepicker"
                                                    data-date-start-date="{{ \Carbon\Carbon::now()->format('m/d/Y') }}"
@@ -35,7 +35,7 @@
                                     <div id="comments_frm_grp"  class="form-group{{ $errors->has('comments') ? ' has-error' : '' }}">
                                         <label for="comments" class="col-md-2 control-label">Comments</label>
 
-                                        <div class="col-md-8">
+                                        <div class="col-md-10">
                                             <textarea id="comments" type="text" class="form-control"
                                                       name="comments" >{{ $order->comments }}</textarea>
                                             @if ($errors->has('comments'))
