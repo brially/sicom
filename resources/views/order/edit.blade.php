@@ -138,6 +138,9 @@
                     </button>
                 </div>
                 <div class="modal-body">
+                    <div id="modal_alert" class="alert alert-success hidden" role="alert">
+                        <strong><span id="modal_alert_title"></span></strong> <span id="modal_alert_message">Order Saved.</span>
+                    </div>
                     <form id="order_item_form" class="form-horizontal">
                         <input type="hidden" name="order_id" value="{{ $order->id }}">
                         {{ csrf_field() }}
@@ -185,8 +188,41 @@
 @push('scripts')
 
 <script type="text/javascript">
+    function resetAlert(name){
+        $('#'+ name + '_alert')
+                .addClass('hidden')
+                .removeClass('alert-success')
+                .removeClass('alert-warning')
+                .removeClass('alert-danger')
+                .removeClass('alert-info');
+    }
+
+    function resetPageAlert(){
+        resetAlert('page');
+    }
+
+    function resetModalAlert(){
+        resetAlert('modal');
+    }
+    function displayAlert(name, alert_class, title, message){
+        $('#'+ name + '_alert_title').text(title);
+        $('#'+ name + '_alert_message').text(message);
+        $('#'+ name + '_alert').removeClass('hidden').addClass(alert_class);
+    }
+
+    function displayPageAlert(alert_class, title, message){
+        displayAlert('page', alert_class, title, message);
+    }
+
+    function displayModalAlert(alert_class, title, message){
+        displayAlert('modal', alert_class, title, message);
+    }
+
+
+
     function updateOrderItem(){
         $('tr' ).removeClass('success');
+        resetModalAlert();
         $('.has-error').removeClass('has-error');
         let order_item_id = $(this).attr('data-order-item-id');
         let order_item_form = $('#frm_order_item_edit_' + order_item_id);
@@ -208,7 +244,7 @@
                         $('#tr_order_item_' + order_item_id ).addClass('success');
                     })
                     .fail(function( xhr, status, errorThrown ) {
-                        alert( "Error, item cannot be updated!" );
+                        displayModalAlert('alert-danger', 'Error!', 'Item cannot be updated!');
                         console.log( "Error: " + errorThrown );
                         console.log( "Status: " + status );
                         console.dir( xhr );
@@ -217,6 +253,7 @@
         }
         else {
             $('#quantity_frm_grp_' + order_item_id).addClass('has-error');
+            displayModalAlert('alert-danger', 'Error!', 'Quantity must be present and greater than 0.');
         }
     }
 
@@ -239,7 +276,7 @@
                     displayPageAlert('alert-success', 'Success!', 'Your item has been removed.');
                 })
                 .fail(function( xhr, status, errorThrown ) {
-                    alert( "Error, item cannot be deleted!" );
+                    displayPageAlert('alert-danger', 'Error!', 'Item cannot be deleted.');
                     console.log( "Error: " + errorThrown );
                     console.log( "Status: " + status );
                     console.dir( xhr );
@@ -250,10 +287,11 @@
     function saveOrderItem(){
         $('.has-error').removeClass('has-error');
         resetPageAlert();
+        resetModalAlert();
         let order_item_form = $('#order_item_form');
         let item_id = $('#item_id').val();
         if($('.ordered_item_id_'+ item_id)[0]){
-            alert('The item has already been added to the order\nPlease adjust the quantity of the existing entry');
+            displayModalAlert('alert-danger', 'Error!', 'The item has already been added to the order\nPlease adjust the quantity of the existing entry.');
         }
         else if(order_item_form[0].checkValidity() ){
             $.post( "{{ action('OrderItemController@store', [$order]) }}", order_item_form.serialize(), function (){}, 'json')
@@ -335,7 +373,7 @@
                         }).appendTo(button_delete);
                     })
                     .fail(function(xhr, status, errorThrown) {
-                        alert( "Error, item cannot be added!" );
+                        displayModalAlert('alert-danger', 'Error!', 'Item cannot be added.');
                         console.log( "Error: " + errorThrown );
                         console.log( "Status: " + status );
                         console.dir( xhr );
@@ -357,21 +395,6 @@
                 $('#quantity_frm_grp').addClass('has-error');
             }
         }
-    }
-
-    function resetPageAlert(){
-        $('#page_alert')
-                .addClass('hidden')
-                .removeClass('alert-success')
-                .removeClass('alert-warning')
-                .removeClass('alert-danger')
-                .removeClass('alert-info');
-    }
-
-    function displayPageAlert(alert_class, title, message){
-        $('#page_alert_title').text(title);
-        $('#page_alert_message').text(message);
-        $('#page_alert').removeClass('hidden').addClass(alert_class);
     }
 
     function saveOrder(){
