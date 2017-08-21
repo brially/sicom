@@ -2,8 +2,10 @@
 
 @section('content')
     <div class="container">
+        <div id="page_alert" class="alert alert-success hidden" role="alert">
+            <strong><span id="page_alert_title"></span></strong> <span id="page_alert_message">Order Saved.</span>
+        </div>
         <div class="row">
-
             <div class="col-md-8 col-md-offset-2">
                 <div class="panel panel-default">
                     <div class="panel-heading">Edit Order</div>
@@ -219,6 +221,7 @@
     }
 
     function deleteOrderItem(){
+        resetPageAlert();
         let order_item_id = $(this).attr('data-order-item-id');
         let url = '{{ action('OrderItemController@index') }}/' + order_item_id;
         let token = $(this).attr('date-csrf-token');
@@ -233,7 +236,7 @@
                 })
                 .done(function( json ) {
                     $('#tr_order_item_' + order_item_id ).remove();
-
+                    displayPageAlert('alert-success', 'Success!', 'Your item has been removed.');
                 })
                 .fail(function( xhr, status, errorThrown ) {
                     alert( "Error, item cannot be deleted!" );
@@ -246,9 +249,9 @@
 
     function saveOrderItem(){
         $('.has-error').removeClass('has-error');
+        resetPageAlert();
         let order_item_form = $('#order_item_form');
         let item_id = $('#item_id').val();
-        console.log($('.ordered_item_id_'+ item_id)[0])
         if($('.ordered_item_id_'+ item_id)[0]){
             alert('The item has already been added to the order\nPlease adjust the quantity of the existing entry');
         }
@@ -356,19 +359,35 @@
         }
     }
 
+    function resetPageAlert(){
+        $('#page_alert')
+                .addClass('hidden')
+                .removeClass('alert-success')
+                .removeClass('alert-warning')
+                .removeClass('alert-danger')
+                .removeClass('alert-info');
+    }
+
+    function displayPageAlert(alert_class, title, message){
+        $('#page_alert_title').text(title);
+        $('#page_alert_message').text(message);
+        $('#page_alert').removeClass('hidden').addClass(alert_class);
+    }
+
     function saveOrder(){
         $('.has-error').removeClass('has-error');
+        resetPageAlert();
         let order_form = $('#order_form');
         if(!$('tr' )[0]){
-            alert( "Add an item before saving!" );
+            displayPageAlert('alert-danger', 'Error!', 'An item must be added before saving.');
         }
         else if(order_form[0].checkValidity() ){
             $.post( "{{ action('OrderController@update', [$order]) }}", order_form.serialize(), function (){}, 'json')
                     .done(function() {
-                        alert('Order Saved')
+                        displayPageAlert('alert-success', 'Success!', 'Your order has been saved.');
                     })
                     .fail(function(xhr, status, errorThrown) {
-                        alert( "Sorry, there was a problem!" );
+                        displayPageAlert('alert-danger', 'Error!', 'Your order could not be saved.');
                         console.log( "Error: " + errorThrown );
                         console.log( "Status: " + status );
                         console.dir( xhr );
@@ -380,6 +399,7 @@
             let fld_date = $('#date');
             if(!fld_date[0].checkValidity()){
                 console.log('date invalid');
+                displayPageAlert('alert-danger', 'Error!', 'The date must be present and for today or in the future');
                 $('#date_frm_grp').addClass('has-error');
             }
         }
